@@ -1,0 +1,25 @@
+{% extends "layout.html" %}
+{% block content %}
+    {% csrf_token %}
+    <h3>Maps</h3>
+    {% for map in maps %}
+    <article class="media content-section">
+        <div class="media-body">
+            <div class="article-metadata">
+                <small class="text-muted">{{map.scale_friendly}}</small>
+            </div>
+            <div class="row">
+                <div class="col-md-10">
+                    <h2><a class="article-title" href="{% url 'dash_map' %}?id={{ map.pk|default:'' }}">{{ map.map_name }}</a></h2>
+                    <p class="article-content">{{ map.description }}</p>
+                </div>
+                <div class="col-sm">
+                    <a href={{ map.image.url }} >
+                        <img class="article-img" src={{ map.image.url }}>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </article>
+    {% endfor %}
+{% endblock content %}

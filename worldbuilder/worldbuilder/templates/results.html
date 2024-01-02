@@ -1,0 +1,62 @@
+{% extends "layout.html" %}
+{% block content %}
+    {% csrf_token %}
+    <h3>ChatGPT Final Output</h3>
+    {% for item in data %}
+    <article class="media content-section">
+        <div class="media-body">
+            <div class="article-metadata">
+                <small class="text-muted">{{item.address}}</small>
+                <small class="text-muted">{{item.tube_station}}</small>
+                <small class="text-muted">{{item.cost}}</small>
+                <small class="text-muted">{{item.cost_estimate}}</small>
+                <small class="text-muted">{{item.opening_hours}}</small>
+                <small class="text-muted">{{item.email}}</small>
+                <small class="text-muted">{{item.telephone}}</small>
+                {% if item.url %}
+                <small class="text-muted"><a href={{item.url}}>Provider url</a></small>
+                {% endif %}
+                {% if item.timeout_url %}
+                <small class="text-muted"><a href={{item.timeout_url}}>Timeout url</a></small>
+                {% endif %}
+                {% if item.booking_url %}
+                <small class="text-muted"><a href={{item.booking_url}}>Booking url</a></small>
+                {% endif %}
+            </div>
+            <h2><a class="article-title" href="#">{{ item.name }}</a></h2>
+            <p class="article-content">{{ item.description }}</p>
+        </div>
+    </article>
+    {% endfor %}
+{% endblock content %}
+{% block content_right %}
+    <h3>Input Articles</h3>
+    {% if knn_results %}
+        {% for item in knn_results %}
+            <article class="media content-section">
+                <div class="media-body">
+                    <div class="article-metadata">
+                        <small class="text-muted">{{item.address}}</small>
+                        <small class="text-muted">{{item.tube_station}}</small>
+                        <small class="text-muted">{{item.cost}}</small>
+                        <small class="text-muted">{{item.cost_estimate}}</small>
+                        <small class="text-muted">{{item.opening_hours}}</small>
+                        <small class="text-muted">{{item.email}}</small>
+                        <small class="text-muted">{{item.telephone}}</small>
+                        {% if item.url %}
+                        <small class="text-muted"><a href={{item.url}}>Provider url</a></small>
+                        {% endif %}
+                        {% if item.timeout_url %}
+                        <small class="text-muted"><a href={{item.timeout_url}}>Timeout url</a></small>
+                        {% endif %}
+                        {% if item.booking_url %}
+                        <small class="text-muted"><a href={{item.booking_url}}>Booking url</a></small>
+                        {% endif %}
+                    </div>
+                    <h2><a class="article-title" href="#">{{ item.name }}</a></h2>
+                    <p class="article-content">{{ item.description }}</p>
+                </div>
+            </article>
+        {% endfor %}
+    {% endif %}
+{% endblock content_right %}

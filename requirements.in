@@ -1,0 +1,15 @@
+channels
+channels-redis
+dash
+dash-renderer
+Django
+django_plotly_dash
+djangorestframework
+djangorestframework-simplejwt
+django-cors-headers
+dpd-static-support
+pandas
+pillow
+plotly
+scikit-image
+whitenoise

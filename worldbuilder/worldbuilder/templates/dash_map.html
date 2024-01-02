@@ -1,0 +1,9 @@
+{% extends "layout.html" %}
+{% load plotly_dash %}
+
+{% block content %}
+{% comment %} {% plotly_app "WorldBuilder" ratio=0.6 %} {% endcomment %}
+{% plotly_app "WorldBuilder" ratio=height_ratio %}
+
+{% comment %} {%plotly_app_bootstrap name="WorldBuilder" %} {% endcomment %}
+{% endblock content %}

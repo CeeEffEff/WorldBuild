@@ -1,0 +1,8 @@
+{% extends "layout.html" %}
+{% block content %}
+    <div class="flex-grow" id="chartDiv">
+        {% autoescape off %}
+            {{ plot_div|safe }}
+        {% endautoescape %}
+    </div>
+{% endblock content %}
