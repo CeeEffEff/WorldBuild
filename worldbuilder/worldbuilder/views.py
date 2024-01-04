@@ -15,7 +15,7 @@ from rest_framework.response import Response
 from skimage import io
 
 
-from worldbuilder.models import Map
+from worldbuilder.models.map import Map, PointOfInterest, PoiOnMap
 from worldbuilder.request_form import RequestForm
 
 logger = logging.getLogger('__name__')
@@ -127,6 +127,14 @@ def dash_map(request: HttpRequest):
     img = io.imread(url)
 
     fig = px.imshow(img)
+    for poi in map.points_of_interest.all():
+        poi: PointOfInterest = poi
+        coords = PoiOnMap.objects.get(map=map, point_of_interest=poi)
+        fig.add_shape(type="circle",
+            xref="x", yref="y",
+            x0=coords.x-50, y0=coords.y-50, x1=coords.x+50, y1=coords.y+50,
+            line_color="LightSeaGreen",
+        )
     fig.update_layout(
         # height=1000
         # autosize=True,

@@ -1,4 +1,8 @@
 from django.contrib import admin
-from .models import Map
+from worldbuilder.models import map
 # Register your models here.
-admin.site.register(Map)
+admin.site.register([
+        map.Map,
+        map.PoiOnMap,
+        map.PointOfInterest
+])
