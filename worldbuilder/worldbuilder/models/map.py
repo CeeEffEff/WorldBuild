@@ -104,3 +104,7 @@ class PoiOnMap(models.Model):
             raise ValidationError(
                 { 'y' : _(f'Point of interest is out-of-bounds')}
             )
+    
+    class Meta:
+        unique_together = ('map', 'point_of_interest')
+
