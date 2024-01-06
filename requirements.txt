@@ -29,18 +29,23 @@ dash==2.9.3
     # via
     #   -r requirements.in
     #   dash-bootstrap-components
+    #   dash-daq
     #   django-plotly-dash
 dash-bootstrap-components==1.5.0
-    # via django-plotly-dash
+    # via
+    #   -r requirements.in
+    #   django-plotly-dash
 dash-core-components==2.0.0
     # via dash
+dash-daq==0.5.0
+    # via -r requirements.in
 dash-html-components==2.0.0
     # via dash
 dash-renderer==1.9.1
     # via -r requirements.in
 dash-table==5.0.0
     # via dash
-django==4.2.8
+django==4.2.9
     # via
     #   -r requirements.in
     #   channels
@@ -98,7 +103,7 @@ packaging==23.2
     #   scikit-image
 pandas==2.0.3
     # via -r requirements.in
-pillow==10.1.0
+pillow==10.2.0
     # via
     #   -r requirements.in
     #   imageio
@@ -134,7 +139,7 @@ tifffile==2023.7.10
     # via scikit-image
 typing-extensions==4.9.0
     # via asgiref
-tzdata==2023.3
+tzdata==2023.4
     # via pandas
 werkzeug==3.0.1
     # via

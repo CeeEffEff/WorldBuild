@@ -1,6 +1,8 @@
 channels
 channels-redis
 dash
+dash-bootstrap-components
+dash-daq
 dash-renderer
 Django
 django_plotly_dash

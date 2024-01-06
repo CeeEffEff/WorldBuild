@@ -211,6 +211,12 @@ PLOTLY_COMPONENTS = [
     
     # Recommended by medium article
     'dash_renderer',
+
+    # Include dash-daq
+    'dash_daq',
+    
+    # dash-bootstrap-components
+    'dash_bootstrap_components',
 ]
 
 # Enable frames within HTML
