@@ -1,4 +1,5 @@
 import logging
+import re
 from typing import Dict, List
 
 import dash_bootstrap_components as dbc
@@ -9,7 +10,7 @@ from django.contrib.auth.models import User
 from django.http import HttpRequest
 from django.shortcuts import redirect, render
 from django_plotly_dash import DjangoDash
-from dash import dcc, html, Input, Output, State, callback, exceptions
+from dash import dcc, html, Input, Output, State, callback, exceptions, no_update
 from plotly.offline import plot
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework import status
@@ -26,26 +27,11 @@ app = DjangoDash(
     external_stylesheets=[dbc.themes.BOOTSTRAP]
 )
 app.layout = html.Div()
-# app.layout = html.Div([
-#     dcc.Graph(
-#         id='map-graph',
-#         figure=px.bar(),
-#         # config=config,
-#         style={'height': '95vh'}  # Set the height to 95% of the viewport height
-#     ),
-#     daq.ColorPicker(
-#         id="annotation-color-picker",
-#         label='Color Picker',
-#         value=dict(rgb=dict(r=255, g=0, b=0, a=1)),
-#         size=164,
-#     )]
-# )
 
 @app.callback(
     Output("map-graph", "figure"),
     Input("annotation-color-picker", "value"),
-    # State("map-graph", "figure"),
-    State("session_store", "data"),
+    State("memory_store", "data"),
     prevent_initial_call=True,
 )
 def on_style_change(color_value, data):
@@ -56,15 +42,48 @@ def on_style_change(color_value, data):
         raise exceptions.PreventUpdate
     c=color_value["rgb"]
     colour = f'rgb({c["r"]},{c["g"]},{c["b"]},{c["a"]})'
-    
+
     updated_fig.update_layout(
         newshape=dict(
-            # opacity=slider_value,
             fillcolor=colour
         ),
     )
-    
+    if shapes := data.get('shapes'):
+        updated_fig.update_layout(
+            shapes=shapes
+        )
     return updated_fig
+
+
+@app.callback(
+    Output("memory_store", "data"),
+    Input("map-graph", "relayoutData"),
+    State("memory_store", "data"),
+    prevent_initial_call=True,
+)
+def on_new_annotation(relayout_data, data):
+    if not relayout_data:
+        return no_update
+    
+    if "shapes" in relayout_data:
+        data['shapes'] = relayout_data["shapes"]
+        return data
+    
+    shapes = data.get('shapes')
+    if not shapes:
+        return no_update
+
+    pattern = r'shapes\[([0-9]+)].([xy][01])'
+    for key in relayout_data:
+        result = re.search(pattern, key)
+        if not result:
+            continue
+        index = int(result.group(1))
+        attr = result.group(2)
+        value = relayout_data[key]
+        shapes[index][attr] = value
+    
+    return data
 
 
 @api_view(['GET'])
@@ -200,20 +219,16 @@ def dash_map(request: HttpRequest):
         ],
         fluid=True,
     )
-    session_store = dcc.Store(
-        id='session_store',
-        storage_type='session',
+    memory_store = dcc.Store(
+        id='memory_store',
+        # storage_type='session',
         data=dict(
            map_id=map_id,
            image_url=image_url
         )
     )
     # Update the app layout outside the view function
-    app.layout.children = [container, session_store]
-    # app.layout = html.Div(
-    #     # dcc.Store(id='session_store', storage_type='session', data=),
-    #     container
-    # )
+    app.layout.children = [container, memory_store]
     image_ratio = map.image.height / map.image.width
     context = {
         'height_ratio': min(image_ratio, ratio)
