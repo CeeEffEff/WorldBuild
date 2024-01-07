@@ -1,89 +1,18 @@
 import logging
-import re
-from typing import Dict, List
 
-import dash_bootstrap_components as dbc
-import dash_daq as daq
-import plotly.express as px
-# import plotly.graph_objects as go
 from django.contrib.auth.models import User
 from django.http import HttpRequest
 from django.shortcuts import redirect, render
-from django_plotly_dash import DjangoDash
-from dash import dcc, html, Input, Output, State, callback, exceptions, no_update
-from plotly.offline import plot
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework import status
 from rest_framework.response import Response
-from skimage import io
 
 
-from worldbuilder.models.map import Map, PointOfInterest, PoiOnMap
+from worldbuilder.models.map import Map
+from worldbuilder.dash.map import set_figure_map
 from worldbuilder.request_form import RequestForm
 
 logger = logging.getLogger('__name__')
-app = DjangoDash(
-    "WorldBuilder",
-    external_stylesheets=[dbc.themes.BOOTSTRAP]
-)
-app.layout = html.Div()
-
-@app.callback(
-    Output("map-graph", "figure"),
-    Input("annotation-color-picker", "value"),
-    State("memory_store", "data"),
-    prevent_initial_call=True,
-)
-def on_style_change(color_value, data):
-    print('Style change')
-    updated_fig = dash_map_fig(data['map_id'], data['image_url'])
-    if updated_fig is None:
-        # Handle the case when the figure is None
-        raise exceptions.PreventUpdate
-    c=color_value["rgb"]
-    colour = f'rgb({c["r"]},{c["g"]},{c["b"]},{c["a"]})'
-
-    updated_fig.update_layout(
-        newshape=dict(
-            fillcolor=colour
-        ),
-    )
-    if shapes := data.get('shapes'):
-        updated_fig.update_layout(
-            shapes=shapes
-        )
-    return updated_fig
-
-
-@app.callback(
-    Output("memory_store", "data"),
-    Input("map-graph", "relayoutData"),
-    State("memory_store", "data"),
-    prevent_initial_call=True,
-)
-def on_new_annotation(relayout_data, data):
-    if not relayout_data:
-        return no_update
-    
-    if "shapes" in relayout_data:
-        data['shapes'] = relayout_data["shapes"]
-        return data
-    
-    shapes = data.get('shapes')
-    if not shapes:
-        return no_update
-
-    pattern = r'shapes\[([0-9]+)].([xy][01])'
-    for key in relayout_data:
-        result = re.search(pattern, key)
-        if not result:
-            continue
-        index = int(result.group(1))
-        attr = result.group(2)
-        value = relayout_data[key]
-        shapes[index][attr] = value
-    
-    return data
 
 
 @api_view(['GET'])
@@ -126,156 +55,17 @@ def request(request: HttpRequest):
 
     return render(request, "request.html", {"form": form})
 
-
-def map_sliders(img_width, img_height) -> list:
-    # Create steps for width slider
-    width_steps = [
-        dict(
-            method="relayout",
-            args=[{"width": i}], 
-        ) for i in range(img_width + 1)
-    ]
-    width_slider = dict(
-        active=min(img_width, 800),
-        currentvalue={"prefix": "Width: "},
-        pad={"t": 150},
-        steps=width_steps,
-        yanchor='top'
-    )
-    height_steps = [
-        dict(
-            method="relayout",
-            args=[{"height": i}], 
-        ) for i in range(img_width + 1)
-    ]
-    height_slider = dict(
-        active=min(img_height, 600),
-        currentvalue={"prefix": "Height: "},
-        pad={"t": 50},
-        steps=height_steps,
-        yanchor='top'
-    )
-    return [width_slider, height_slider]
-
-def map(request: HttpRequest):
-    id = request.GET.get('id', default=None)
-    try:
-        map = Map.objects.get(pk=id)
-    except Exception:
-        map = Map.objects.last()
-    
-    url = request.build_absolute_uri(map.image.url)
-    img = io.imread(
-        url,
-    )
-    fig = px.imshow(img)
-    fig.update_layout(
-        autosize=True,
-        sliders = map_sliders(map.image.width, map.image.height),
-        newshape=dict(fillcolor="cyan", opacity=0.3, line=dict(color="darkblue", width=8)),
-    )
-    img_plot = plot(fig, output_type="div")
-    context = {'plot_div': img_plot}
-    return render(request, 'map.html', context)
-
 def dash_map(request: HttpRequest):
     map_id = request.GET.get('id', default=None)
     width = request.session.get('width')
     height = request.session.get('height')
     ratio = height / width if width and height else 0.5
-    map, fig, image_url = request_dash_map_fig(request, map_id)
-    config = {
-        'displayModeBar': True, 
-        'responsive': True,
-        "modeBarButtonsToAdd": [
-            "drawline",
-            "drawopenpath",
-            "drawclosedpath",
-            "drawcircle",
-            "drawrect",
-            "eraseshape",
-        ]
-    }
-    image_graph = dcc.Graph(
-        id='map-graph',
-        figure=fig,
-        config=config,
-        style={'height': '95vh'}  # Set the height to 95% of the viewport height
-    )
-    colour_picker = daq.ColorPicker(
-        id="annotation-color-picker",
-        label='Color Picker',
-        value=dict(rgb=dict(r=255, g=0, b=0, a=1)),
-        size=164,
-    )
-    container = dbc.Container(
-        [
-            dbc.Row(
-                [
-                    dbc.Col(colour_picker, md=1, align="left",),
-                    dbc.Col(image_graph, md=10, align="right",),
-                ],
-            ),
-        ],
-        fluid=True,
-    )
-    memory_store = dcc.Store(
-        id='memory_store',
-        # storage_type='session',
-        data=dict(
-           map_id=map_id,
-           image_url=image_url
-        )
-    )
-    # Update the app layout outside the view function
-    app.layout.children = [container, memory_store]
+    map = set_figure_map(request, map_id)
     image_ratio = map.image.height / map.image.width
     context = {
         'height_ratio': min(image_ratio, ratio)
     }
     return render(request, 'dash_map.html', context)
-
-def request_dash_map_fig(request, id):
-    try:
-        map = Map.objects.get(pk=id)
-    except Exception:
-        map = Map.objects.last()
-
-    image_url = request.build_absolute_uri(map.image.url)
-    img = io.imread(image_url)
-
-    fig = px.imshow(img)
-    for poi in map.points_of_interest.all():
-        poi: PointOfInterest = poi
-        coords = PoiOnMap.objects.get(map=map, point_of_interest=poi)
-        fig.add_shape(type="circle",
-            xref="x", yref="y",
-            x0=coords.x-50, y0=coords.y-50, x1=coords.x+50, y1=coords.y+50,
-            line_color="LightSeaGreen",
-            fillcolor="PaleTurquoise",
-        )
-    
-    return map,fig,image_url
-
-def dash_map_fig(map_id, image_url):
-    try:
-        map = Map.objects.get(pk=map_id)
-    except Exception:
-        map = Map.objects.last()
-
-    img = io.imread(image_url)
-
-    fig = px.imshow(img)
-    for poi in map.points_of_interest.all():
-        poi: PointOfInterest = poi
-        coords = PoiOnMap.objects.get(map=map, point_of_interest=poi)
-        fig.add_shape(type="circle",
-            xref="x", yref="y",
-            x0=coords.x-50, y0=coords.y-50, x1=coords.x+50, y1=coords.y+50,
-            line_color="LightSeaGreen",
-            fillcolor="PaleTurquoise",
-        )
-    return fig
 
 @api_view(['GET'])
 @permission_classes([])
