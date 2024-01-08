@@ -1,3 +1,4 @@
+import json
 import logging
 import re
 from typing import Tuple
@@ -55,9 +56,20 @@ container = dbc.Container(
         dbc.Row(
             [
                 dbc.Col([colour_picker, outline_colour_picker], md=1, align="left",),
-                dbc.Col(image_graph, md=10, align="right",),
+                dbc.Col(image_graph, md=8, align="right",),
+                dbc.Col([
+                    dcc.Markdown("""
+                        **Click Data**
+
+                        Click on points in the graph.
+                    """),
+                    html.Pre(id='click-data',
+                            #  style=styles['pre']
+                            ),
+                ], md = 3, align='right')
             ],
         ),
+        
     ],
     fluid=True,
 )
@@ -138,6 +150,12 @@ def on_new_annotation(relayout_data, data):
         shapes[index][attr] = value
     return data
 
+@app.callback(
+    Output('click-data', 'children'),
+    Input('map-graph', 'clickData'))
+def display_click_data(clickData):
+    return json.dumps(clickData, indent=2)
+
 @dispatch(str, str)
 def map_fig(map_id: str, image_url: str) -> Tuple[Map, go.Figure]:
     try:
@@ -161,14 +179,19 @@ def map_fig(request: HttpRequest, id: str) -> Tuple[Map, go.Figure, str]:
 def build_map_fig(map: Map, image_url: str) -> go.Figure:
     img = io.imread(image_url)
     fig = px.imshow(img)
+    x, y, customdata = [], [], []
     for poi in map.points_of_interest.all():
         coords = PoiOnMap.objects.get(map=map, point_of_interest=poi)
-        fig.add_shape(type="circle",
-            xref="x", yref="y",
-            x0=coords.x-50, y0=coords.y-50, x1=coords.x+50, y1=coords.y+50,
-            line_color="LightSeaGreen",
-            fillcolor="PaleTurquoise",
-        )
+        x.append(coords.x)
+        y.append(coords.y)
+        customdata.append({poi.name: poi.description})
+        # fig.add_shape(type="circle",
+        #     xref="x", yref="y",
+        #     x0=coords.x-50, y0=coords.y-50, x1=coords.x+50, y1=coords.y+50,
+        #     line_color="LightSeaGreen",
+        #     fillcolor="PaleTurquoise",
+        # )
+    fig.add_trace(go.Scatter(x=x, y=y, customdata=customdata, marker=dict(color='red', size=16)))
     fig.update_layout(
         dragmode="drawcircle",
         newshape= dict(
