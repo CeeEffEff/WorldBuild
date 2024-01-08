@@ -40,7 +40,13 @@ image_graph = dcc.Graph(
 default_rgb = dict(r=255, g=0, b=0, a=1)
 colour_picker = daq.ColorPicker(
     id="annotation-color-picker",
-    label='Color Picker',
+    label='Fill Color Picker',
+    value=dict(rgb=default_rgb),
+    size=120,
+)
+outline_colour_picker = daq.ColorPicker(
+    id="annotation-color-picker-outline",
+    label='Line Color Picker',
     value=dict(rgb=default_rgb),
     size=120,
 )
@@ -48,7 +54,7 @@ container = dbc.Container(
     [
         dbc.Row(
             [
-                dbc.Col(colour_picker, md=1, align="left",),
+                dbc.Col([colour_picker, outline_colour_picker], md=1, align="left",),
                 dbc.Col(image_graph, md=10, align="right",),
             ],
         ),
@@ -68,10 +74,11 @@ app.layout = html.Div([
 @app.callback(
     Output("map-graph", "figure"),
     Input("annotation-color-picker", "value"),
+    Input("annotation-color-picker-outline", "value"),
     State("memory_store", "data"),
     prevent_initial_call=True,
 )
-def on_style_change(color_value, data):
+def on_style_change(color_value, line_colour_value, data):
     print('Style change')
     _, fig = map_fig(data['map_id'], data['image_url'])
     if fig is None:
@@ -79,12 +86,14 @@ def on_style_change(color_value, data):
         raise exceptions.PreventUpdate
     c=color_value["rgb"]
     colour = daq_rgb_to_dash(c)
+    lc=line_colour_value["rgb"]
+    line_colour = daq_rgb_to_dash(lc)
 
     update_kwargs = {
         "newshape": dict(
-            fillcolor=colour
+            fillcolor=colour,
+            line_color=line_colour
         ),
-        "dragmode": data.get('dragmode')
     }
     if shapes := data.get('shapes'):
         update_kwargs['shapes'] = shapes
