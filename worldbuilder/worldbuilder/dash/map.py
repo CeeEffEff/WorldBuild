@@ -1,7 +1,7 @@
 import json
 import logging
 import re
-from typing import Tuple
+from typing import Dict, List, Tuple
 
 import dash_bootstrap_components as dbc
 import dash_daq as daq
@@ -9,11 +9,12 @@ import plotly.express as px
 import plotly.graph_objects as go
 from dash import dcc, html, Input, Output, State, exceptions, no_update
 from django.http import HttpRequest
+from django.urls import reverse
 from django_plotly_dash import DjangoDash
 from multipledispatch import dispatch
 from skimage import io
 
-from worldbuilder.models.map import Map, PoiOnMap
+from worldbuilder.models.map import Map, PoiOnMap, PointOfInterest
 
 logger = logging.getLogger('__name__')
 app = DjangoDash(
@@ -31,6 +32,12 @@ config = {
         "drawrect",
         "eraseshape",
     ]
+}
+styles = {
+    'pre': {
+        'border': 'thin lightgrey solid',
+        'overflowX': 'scroll'
+    }
 }
 image_graph = dcc.Graph(
     id='map-graph',
@@ -57,16 +64,16 @@ container = dbc.Container(
             [
                 dbc.Col([colour_picker, outline_colour_picker], md=1, align="left",),
                 dbc.Col(image_graph, md=8, align="right",),
-                dbc.Col([
-                    dcc.Markdown("""
-                        **Click Data**
+                dbc.Col([], md = 3, align='right', id='click-data')
+                # dbc.Col([
+                #     dcc.Markdown("""
+                #         **Click Data**
 
-                        Click on points in the graph.
-                    """),
-                    html.Pre(id='click-data',
-                            #  style=styles['pre']
-                            ),
-                ], md = 3, align='right')
+                #         Click on points in the graph.
+                #     """),
+                #     # html.
+                #     html.Pre(id='click-data', style=styles['pre']),
+                # ], md = 3, align='right')
             ],
         ),
         
@@ -153,8 +160,42 @@ def on_new_annotation(relayout_data, data):
 @app.callback(
     Output('click-data', 'children'),
     Input('map-graph', 'clickData'))
-def display_click_data(clickData):
-    return json.dumps(clickData, indent=2)
+def display_click_data(click_data: Dict):
+    print(click_data)
+    if not click_data:
+        return
+    points: List[Dict] = click_data.get('points')
+    if not points:
+        return ''
+    point_data = points[0].get('customdata')
+    if not point_data:
+        return ''
+    pk = point_data.get('pk')
+    poi = PointOfInterest.objects.get(pk=pk)
+    print(f"{reverse('dash_map')}?id={poi.poi_map.pk}")
+    return dbc.Card(
+        [
+            dbc.CardImg(src=poi.thumbnail.url, top=True),
+            dbc.CardBody(
+                [
+                    html.H4(poi.name, className="card-title",),
+                    html.P(
+                        poi.description,
+                        className="card-text",
+                    ),
+                    dbc.Button(
+                        "Go somewhere", color="primary", href=f"{reverse('dash_map')}?id={poi.poi_map.pk}",
+                        target="_blank",
+                        external_link=True,
+                    ),
+                ]
+            ),
+        ],
+        style={"height": "90vh"},
+    )
+    return json.dumps(
+        poi, indent=2
+    )
 
 @dispatch(str, str)
 def map_fig(map_id: str, image_url: str) -> Tuple[Map, go.Figure]:
@@ -184,7 +225,9 @@ def build_map_fig(map: Map, image_url: str) -> go.Figure:
         coords = PoiOnMap.objects.get(map=map, point_of_interest=poi)
         x.append(coords.x)
         y.append(coords.y)
-        customdata.append({poi.name: poi.description})
+        customdata.append({
+            'pk': poi.pk
+        })
         # fig.add_shape(type="circle",
         #     xref="x", yref="y",
         #     x0=coords.x-50, y0=coords.y-50, x1=coords.x+50, y1=coords.y+50,

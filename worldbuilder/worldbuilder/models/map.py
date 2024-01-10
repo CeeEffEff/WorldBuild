@@ -62,6 +62,10 @@ class Map(models.Model):
 class PointOfInterest(models.Model):
     name = models.CharField(max_length=50, null=False)
     description = models.TextField(null=True)
+    thumbnail = models.ImageField(
+        upload_to="thumbnails/",
+        default='thumbnails/default.jpeg'
+    )
 
     poi_map = models.ForeignKey(
         Map,
