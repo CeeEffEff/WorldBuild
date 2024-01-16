@@ -1,5 +1,7 @@
+import base64
 import json
 import logging
+import os
 import re
 from typing import Dict, List, Tuple
 
@@ -8,6 +10,7 @@ import dash_daq as daq
 import plotly.express as px
 import plotly.graph_objects as go
 from dash import dcc, html, Input, Output, State, exceptions, no_update
+from django.conf import settings
 from django.http import HttpRequest
 from django.urls import reverse
 from django_plotly_dash import DjangoDash
@@ -19,7 +22,8 @@ from worldbuilder.models.map import Map, PoiOnMap, PointOfInterest
 logger = logging.getLogger('__name__')
 app = DjangoDash(
     "WorldBuilder",
-    external_stylesheets=[dbc.themes.BOOTSTRAP]
+    external_stylesheets=[dbc.themes.BOOTSTRAP],
+    suppress_callback_exceptions=True
 )
 config = {
     'displayModeBar': True, 
@@ -62,18 +66,15 @@ container = dbc.Container(
     [
         dbc.Row(
             [
-                dbc.Col([colour_picker, outline_colour_picker], md=1, align="left",),
+                dbc.Col([colour_picker, outline_colour_picker], md=1, align="left", ),
                 dbc.Col(image_graph, md=8, align="right",),
-                dbc.Col([], md = 3, align='right', id='click-data')
-                # dbc.Col([
-                #     dcc.Markdown("""
-                #         **Click Data**
-
-                #         Click on points in the graph.
-                #     """),
-                #     # html.
-                #     html.Pre(id='click-data', style=styles['pre']),
-                # ], md = 3, align='right')
+                dbc.Col([], md = 3, align='right', id='click-data'),
+                dbc.Col([
+                    dcc.Markdown("""
+                        **Debug**
+                    """),
+                    html.Pre(id='debug-data', style=styles['pre']),
+                ], md = 3, align='right')
             ],
         ),
         
@@ -98,7 +99,6 @@ app.layout = html.Div([
     prevent_initial_call=True,
 )
 def on_style_change(color_value, line_colour_value, data):
-    print('Style change')
     _, fig = map_fig(data['map_id'], data['image_url'])
     if fig is None:
         # Handle the case when the figure is None
@@ -159,20 +159,164 @@ def on_new_annotation(relayout_data, data):
 
 @app.callback(
     Output('click-data', 'children'),
-    Input('map-graph', 'clickData'))
-def display_click_data(click_data: Dict):
-    print(click_data)
+    Input('map-graph', 'clickData'),
+    State("memory_store", "data"),
+    prevent_initial_call=True,)
+def display_click_data(click_data: Dict, data: Dict):
+    # print(json.dumps(
+    #     click_data, indent=2
+    # ))
     if not click_data:
         return
     points: List[Dict] = click_data.get('points')
     if not points:
         return ''
-    point_data = points[0].get('customdata')
-    if not point_data:
-        return ''
+    point = points[0]
+    point_data = point.get('customdata')
+    if point_data:
+        return display_poi_card(point_data)
+    if ("x" in point) and ("y" in point):
+        return display_context_menu(point["x"], point["y"], data['map_id'])
+    return ''
+
+@app.callback(
+    Output('upload-thumbnail-poi-form', 'children'),
+    Input('upload-thumbnail-poi-form', 'contents'),
+    State('upload-thumbnail-poi-form', 'filename'),
+    prevent_initial_call=True,)
+def update_poi_thumbnail_upload(contents, name):
+    if contents is not None:
+        return html.Div([
+            html.A([
+                dcc.Markdown(f"""
+                        _Thumbnail:_ {name}
+                    """),
+                ])
+        ])
+    return no_update
+
+
+@app.callback(
+    Output('store-poi-form', 'data'),
+    Input('point-poi-form', 'children'),
+    Input('name-input-poi-form', 'value'),
+    Input('description-textarea-poi-form', 'value'),
+    Input('upload-thumbnail-poi-form', 'contents'),
+    Input('map-dropdown-poi-form', 'value'),
+    State('upload-thumbnail-poi-form', 'filename'),
+    prevent_initial_call=True,)
+def update_poi_form(point, name, description, thumbnail_data, poi_map, thumbnail_filename):
+    pattern = r'\[(\d+),(\d+)]'
+    result = re.search(pattern, point)
+    x, y = int(result.group(1)), int(result.group(2))
+    return {
+        'x': x,
+        'y': y,
+        'name': name,
+        'description': description,
+        'poi_map': poi_map,
+        'thumbnail_data': thumbnail_data,
+        'thumbnail_filename': thumbnail_filename
+    }
+
+@app.callback(
+    Output('debug-data', 'children'),
+    Input('button-create-poi', 'n_clicks'),
+    State('store-poi-form', 'data'),
+    State('memory_store', 'data'),
+    prevent_initial_call=True,)
+def on_button_poi_create(clicks, poi_form, data):
+    if not clicks:
+        return no_update
+    thumbnail_data = poi_form['thumbnail_data'].encode("utf8").split(b";base64,")[1]
+    thumbnail_filename = poi_form['thumbnail_filename']
+    thumbnail_path = os.path.join('thumbnails', thumbnail_filename)
+    thumbnail_fullpath = os.path.join(settings.MEDIA_ROOT, thumbnail_path)
+    with open(thumbnail_fullpath, "wb") as fp:
+        fp.write(base64.decodebytes(thumbnail_data))
+    curr_map = Map.objects.get(pk=data['map_id'])
+    poi = PointOfInterest(
+        name=poi_form['name'],
+        description = description if (description := poi_form.get('name')) else None,
+        thumbnail = thumbnail_path,
+        poi_map = Map.objects.get(pk=poi_form['poi_map']) if poi_form['poi_map'] else None
+    )
+    poi.full_clean()
+    poi.save()
+    poi.parent_maps.add(curr_map, through_defaults={
+        'x': poi_form['x'],
+        'y': poi_form['y']
+    })
+    poi.full_clean()
+    poi.save()
+    return 'Return creating POI'
+
+def display_context_menu(x, y, map_id):
+    print('Need to exclude if already on this map')
+    map_options = [
+       { 'label':map.map_name, 'value': map.pk }  for map in Map.objects.exclude(pk=map_id)
+    ]
+    return dbc.Card(
+        [
+            dbc.CardHeader("Context Menu"),
+            dbc.CardBody(
+                [
+                    html.H4(f"[{x},{y}]", className="card-title", id='point-poi-form'),
+                    html.P(
+                        "Create a new point of interest",
+                        className="card-text",
+                    ),
+                    html.Hr(),
+                    dbc.InputGroup(
+                        [
+                            dbc.InputGroupText("Name"),
+                            dbc.Input(placeholder="New Point of Interest", required=True, id='name-input-poi-form')
+                        ],
+                        className="sb-3",
+                    ),
+                    html.Br(),
+                    dbc.InputGroup(
+                        [dbc.InputGroupText("Description"), dbc.Textarea(id='description-textarea-poi-form')],
+                        className="sb-3",
+                    ),
+                    html.Br(),
+                    dcc.Upload(
+                        id='upload-thumbnail-poi-form',
+                        children=html.Div([
+                            html.A('Select Thumbnail')
+                        ]),
+                        style={
+                            'width': '100%',
+                            'height': '60px',
+                            'lineHeight': '60px',
+                            'borderWidth': '1px',
+                            'borderStyle': 'dashed',
+                            'borderRadius': '5px',
+                            'textAlign': 'center',
+                        }
+                    ),
+                    html.Br(),
+                    dbc.InputGroup(
+                        [dbc.InputGroupText("Map for POI"), dcc.Dropdown(options=map_options, id='map-dropdown-poi-form')],
+                        className="mb-3",
+                    ),
+                    html.Br(),
+                    dbc.Button(
+                        "Create Point of Interest", color="primary", id="button-create-poi"
+                    ),
+                    dcc.Store(
+                        id='store-poi-form',
+                        data=dict()
+                    )
+                ]
+            ),
+        ],
+        style={"height": "90vh"},
+    )
+
+def display_poi_card(point_data):
     pk = point_data.get('pk')
     poi = PointOfInterest.objects.get(pk=pk)
-    print(f"{reverse('dash_map')}?id={poi.poi_map.pk}")
     return dbc.Card(
         [
             dbc.CardImg(src=poi.thumbnail.url, top=True),
@@ -183,18 +327,15 @@ def display_click_data(click_data: Dict):
                         poi.description,
                         className="card-text",
                     ),
-                    dbc.Button(
-                        "Go somewhere", color="primary", href=f"{reverse('dash_map')}?id={poi.poi_map.pk}",
-                        target="_blank",
-                        external_link=True,
-                    ),
-                ]
+                ] + ([dbc.Button(
+                    "Go to map of POI", color="primary", href=f"{reverse('dash_map')}?id={poi.poi_map.pk}",
+                    target="_blank",
+                    external_link=True,
+                )] if poi.poi_map else [])
+                
             ),
         ],
         style={"height": "90vh"},
-    )
-    return json.dumps(
-        poi, indent=2
     )
 
 @dispatch(str, str)
@@ -234,7 +375,7 @@ def build_map_fig(map: Map, image_url: str) -> go.Figure:
         #     line_color="LightSeaGreen",
         #     fillcolor="PaleTurquoise",
         # )
-    fig.add_trace(go.Scatter(x=x, y=y, customdata=customdata, marker=dict(color='red', size=16)))
+    fig.add_trace(go.Scatter(x=x, y=y, customdata=customdata, marker=dict(color='red', size=16), mode='markers'))
     fig.update_layout(
         dragmode="drawcircle",
         newshape= dict(
