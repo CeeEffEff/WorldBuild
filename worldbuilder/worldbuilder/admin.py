@@ -1,8 +1,24 @@
 from django.contrib import admin
-from worldbuilder.models import map
+import worldbuilder.models as models
 # Register your models here.
+
+class QuestTaskInline(admin.TabularInline):
+    model = models.QuestTask
+    extra = 1
+
+class QuestAdmin(admin.ModelAdmin):
+    inlines = [
+        QuestTaskInline,
+    ]
+
 admin.site.register([
-        map.Map,
-        map.PoiOnMap,
-        map.PointOfInterest
+        models.Map,
+        models.PoiOnMap,
+        models.PointOfInterest,
+        models.Faction,
+        models.Npc,
+        models.QuestTask,
 ])
+admin.site.register(
+    models.Quest, QuestAdmin
+)

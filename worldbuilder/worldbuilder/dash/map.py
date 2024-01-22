@@ -17,7 +17,7 @@ from django_plotly_dash import DjangoDash
 from multipledispatch import dispatch
 from skimage import io
 
-from worldbuilder.models.map import Map, PoiOnMap, PointOfInterest
+from worldbuilder.models import Map, PoiOnMap, PointOfInterest
 
 logger = logging.getLogger('__name__')
 app = DjangoDash(
