@@ -10,9 +10,8 @@ class PointOfInterest(models.Model):
         verbose_name_plural = _("Points of Interest")
 
     name = models.CharField(max_length=50, null=False)
-    description = models.TextField(null=True, blank=True)
-    # description = MarkdownField(rendered_field='description_rendered', validator=VALIDATOR_STANDARD, null=True, blank=True)
-    # description_rendered = RenderedMarkdownField()
+    description = MarkdownField(rendered_field='description_rendered', validator=VALIDATOR_STANDARD, null=True, blank=True)
+    description_rendered = RenderedMarkdownField(null=True, blank=True)
     thumbnail = models.ImageField(
         upload_to="thumbnails/",
         default='thumbnails/default.jpeg',

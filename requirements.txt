@@ -53,13 +53,19 @@ django==4.2.9
     # via
     #   -r requirements.in
     #   channels
+    #   django-ckeditor
     #   django-cors-headers
+    #   django-js-asset
     #   django-markdownfield
     #   django-plotly-dash
     #   djangorestframework
     #   djangorestframework-simplejwt
+django-ckeditor==6.7.0
+    # via -r requirements.in
 django-cors-headers==4.3.1
     # via -r requirements.in
+django-js-asset==2.2.0
+    # via django-ckeditor
 django-markdownfield==0.11.0
     # via -r requirements.in
 django-plotly-dash==2.2.2

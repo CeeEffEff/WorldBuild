@@ -323,7 +323,7 @@ def display_poi_card(point_data):
             dbc.CardBody(
                 [
                     html.H4(poi.name, className="card-title",),
-                    html.P(
+                    dcc.Markdown(
                         poi.description,
                         className="card-text",
                     ),
