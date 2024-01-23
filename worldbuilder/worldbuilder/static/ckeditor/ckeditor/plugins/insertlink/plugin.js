@@ -19,7 +19,7 @@ CKEDITOR.plugins.add('insertlink', {
         // Define the dialog window
         CKEDITOR.dialog.add('insertlinkDialog', function (editor) {
             return {
-                title: 'Insert Link',
+                title: 'Insert Link to Model',
                 minWidth: 400,
                 minHeight: 200,
                 contents: [
@@ -36,10 +36,12 @@ CKEDITOR.plugins.add('insertlink', {
                                     // Set the value when editing an existing link
                                     this.setValue(widget.data.objectId);
                                 },
-                                commit: function (widget) {
-                                    // Set the data to be used in the final link
-                                    widget.setData('objectId', this.getValue());
+                                onChange: function( api ) {
+                                    // this = CKEDITOR.ui.dialog.select
+                                    alert( 'Current value: ' + this.getValue() );
+                                    editor.insertHtml(this.getValue())
                                 }
+                                
                             }
                         ]
                     }
@@ -48,13 +50,28 @@ CKEDITOR.plugins.add('insertlink', {
                     const dialog = this;
                     const select = dialog.getContentElement('tab-basic', 'objectId');
                     // Make an AJAX request to a Django view that returns the list of objects
-                    fetch('/path/to/objects/')
+                    fetch(CKEDITOR.getUrl('/lists/npc'))
                         .then(response => response.json())
                         .then(data => {
-                            // Populate the 'items' array in the select element
-                            select.items = data.objects.map(object => [object.id, object.name]);
+                            // Clear existing options
+                            // select.getInputElement().$.length = 0;
+                            select.clear()
+                            // Dynamically set the items
+                            const items = data.map(object => [object.model + object.pk, object.fields.name]);
+                            items.forEach(([value, text]) => {
+                                select.add(text, value)
+                            });
+                            items.forEach(([value, text]) => {
+                                select.add(text, value)
+                            });
                         })
                         .catch(error => console.error('Error fetching objects:', error));
+                },
+                onOk: function (widget) {
+                    const dialog = this;
+                    const select = dialog.getContentElement('tab-basic', 'objectId');
+                    // Set the data to be used in the final link
+                    editor.insertHtml(select.getValue())
                 }
             };
         });

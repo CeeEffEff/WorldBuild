@@ -10,7 +10,8 @@ urlpatterns = [
     path("accounts/profile/", views.profile, name="profile"),
     path("dash_map/", views.dash_map, name="dash_map"),
     path("maps/", views.maps, name="maps"),
-    path("session_screen_size/", views.session_screen_size, name="session_screen_size")
+    path("session_screen_size/", views.session_screen_size, name="session_screen_size"),
+    path("lists/npc", views.list_npcs, name="list_npcs")
 ]
 
 if settings.DEBUG:

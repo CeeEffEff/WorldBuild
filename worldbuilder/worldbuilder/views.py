@@ -1,13 +1,14 @@
 import logging
 
 from django.contrib.auth.models import User
-from django.http import HttpRequest
+from django.core import serializers
+from django.http import HttpRequest, HttpResponse
 from django.shortcuts import redirect, render
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework import status
 from rest_framework.response import Response
 
-
+import worldbuilder.models as models
 from worldbuilder.models.map import Map
 from worldbuilder.dash.map import set_figure_map
 from worldbuilder.request_form import RequestForm
@@ -82,6 +83,12 @@ def session_screen_size(request: HttpRequest):
     request.session['width'] = width
     request.session['height'] = height
     return Response(b'', status=status.HTTP_200_OK)
+
+@api_view(['GET'])
+@permission_classes([])
+def list_npcs(request: HttpRequest):
+    data = serializers.serialize('json', models.Npc.objects.all())
+    return HttpResponse(data, content_type='application/json')
 
 def maps(request):
     maps = Map.objects.all()
