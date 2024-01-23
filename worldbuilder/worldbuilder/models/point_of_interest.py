@@ -1,6 +1,8 @@
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils.translation import gettext_lazy as _
+from markdownfield.models import MarkdownField, RenderedMarkdownField
+from markdownfield.validators import VALIDATOR_STANDARD
 
 class PointOfInterest(models.Model):
     class Meta:
@@ -9,10 +11,13 @@ class PointOfInterest(models.Model):
 
     name = models.CharField(max_length=50, null=False)
     description = models.TextField(null=True, blank=True)
+    # description = MarkdownField(rendered_field='description_rendered', validator=VALIDATOR_STANDARD, null=True, blank=True)
+    # description_rendered = RenderedMarkdownField()
     thumbnail = models.ImageField(
         upload_to="thumbnails/",
         default='thumbnails/default.jpeg',
-        null=True
+        null=True,
+        blank=True
     )
 
     poi_map = models.ForeignKey(

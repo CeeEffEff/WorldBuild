@@ -9,6 +9,7 @@ django_plotly_dash
 djangorestframework
 djangorestframework-simplejwt
 django-cors-headers
+django-markdownfield
 dpd-static-support
 multipledispatch
 pandas

@@ -12,7 +12,7 @@ class Quest(models.Model):
         return self.name
 
     name = models.CharField(max_length=50, null=False, blank=False)
-    image = models.ImageField(upload_to="quests/", null=True)
+    image = models.ImageField(upload_to="quests/", null=True, blank=True)
     description = models.TextField(_("Description"), null=True, blank=True)
     faction = models.ManyToManyField("Faction", verbose_name=_("Quest Faction"))
     quest_giver = models.ManyToManyField("Npc", verbose_name=_("Quest Giver"))

@@ -12,7 +12,7 @@ class Faction(models.Model):
         return self.name
 
     name = models.CharField(max_length=50, null=False, blank=False)
-    icon = models.ImageField(upload_to="factions/")
+    icon = models.ImageField(upload_to="factions/", null=True, blank=True)
     motto = models.CharField(max_length=100, null=True, blank=True)
     description = models.TextField(_("General Description"), null=True, blank=True)
     goals = models.TextField(_("Goals"), null=True, blank=True)

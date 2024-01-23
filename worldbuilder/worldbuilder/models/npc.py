@@ -12,7 +12,7 @@ class Npc(models.Model):
         return self.name
 
     name = models.CharField(max_length=50, null=False, blank=False)
-    image = models.ImageField(upload_to="npcs/", null=True)
+    image = models.ImageField(upload_to="npcs/", null=True, blank=True)
     alignment = models.TextField(_("Alignment"), null=True, blank=True)
     classes = models.TextField(_("Classes"),  null=True, blank=True)
     description = models.TextField(_("Description"), null=True, blank=True)
