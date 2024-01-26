@@ -1,3 +1,4 @@
+import json
 import logging
 
 from django.contrib.auth.models import User
@@ -86,9 +87,41 @@ def session_screen_size(request: HttpRequest):
 
 @api_view(['GET'])
 @permission_classes([])
-def list_npcs(request: HttpRequest):
-    data = serializers.serialize('json', models.Npc.objects.all())
+def list_npcs(_: HttpRequest):
+    data = serializers.serialize('json', models.Npc.objects.all().order_by('name'))
     return HttpResponse(data, content_type='application/json')
+
+@api_view(['GET'])
+@permission_classes([])
+def list_factions(_: HttpRequest):
+    data = serializers.serialize('json', models.Faction.objects.all().order_by('name'))
+    return HttpResponse(data, content_type='application/json')
+
+@api_view(['GET'])
+@permission_classes([])
+def list_maps(_: HttpRequest):
+    data = serializers.serialize('json', models.Map.objects.all().order_by('name'))
+    return HttpResponse(data, content_type='application/json')
+
+@api_view(['GET'])
+@permission_classes([])
+def list_points_of_interest(_: HttpRequest):
+    data = serializers.serialize('json', models.PointOfInterest.objects.all().order_by('name'))
+    return HttpResponse(data, content_type='application/json')
+
+@api_view(['GET'])
+@permission_classes([])
+def list_quests(_: HttpRequest):
+    data = serializers.serialize('json', models.Quest.objects.all().order_by('name'))
+    return HttpResponse(data, content_type='application/json')
+
+@api_view(['GET'])
+@permission_classes([])
+def lists(_: HttpRequest):
+    return HttpResponse(
+        json.dumps(['npc', 'faction', 'map', 'point_of_interest', 'quest']),
+        content_type='application/json'
+    )
 
 def maps(request):
     maps = Map.objects.all()

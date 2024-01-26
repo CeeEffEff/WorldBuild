@@ -10,7 +10,7 @@
             </div>
             <div class="row">
                 <div class="col-md-10">
-                    <h2><a class="article-title" href="{% url 'dash_map' %}?id={{ map.pk|default:'' }}">{{ map.map_name }}</a></h2>
+                    <h2><a class="article-title" href="{% url 'dash_map' %}?id={{ map.pk|default:'' }}">{{ map.name }}</a></h2>
                     <p class="article-content">{{ map.description }}</p>
                 </div>
                 <div class="col-sm">

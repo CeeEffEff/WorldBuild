@@ -25,7 +25,7 @@ class Map(models.Model):
     }
     SCALE_MAP_REVERSE = { value: key for key, value in SCALE_MAP }
 
-    map_name = models.CharField(max_length=50, null=False)
+    name = models.CharField(max_length=50, null=False)
     image = models.ImageField(upload_to="maps/")
     description = models.TextField(null=True)
     scale = models.CharField(
@@ -51,7 +51,7 @@ class Map(models.Model):
         return self.SCALE_MAP_REVERSE.get(self.scale_num - 1)
 
     def __str__(self):
-        return self.map_name
+        return self.name
 
     def clean(self):
         if self.parent_scale and self.parent and not (self.parent.scale == self.parent_scale):

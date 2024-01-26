@@ -254,7 +254,7 @@ def on_button_poi_create(clicks, poi_form, data):
 def display_context_menu(x, y, map_id):
     print('Need to exclude if already on this map')
     map_options = [
-       { 'label':map.map_name, 'value': map.pk }  for map in Map.objects.exclude(pk=map_id)
+       { 'label':map.name, 'value': map.pk }  for map in Map.objects.exclude(pk=map_id)
     ]
     return dbc.Card(
         [
