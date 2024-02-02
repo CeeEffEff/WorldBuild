@@ -17,6 +17,7 @@ urlpatterns = [
     path("lists/point_of_interest", views.list_points_of_interest, name="list_points_of_interest"),
     path("lists/quest", views.list_quests, name="list_quests"),
     path("lists", views.lists, name="lists"),
+    path("search/", views.search, name="search"),
 ]
 
 if settings.DEBUG:

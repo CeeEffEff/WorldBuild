@@ -1,0 +1,163 @@
+{% extends "admin/change_form.html" %}
+{% load i18n admin_urls %}
+
+{% block object-tools-items %}
+    {{ block.super }}
+    <li>
+        <button class="get-object-link-btn">{% translate "Get Object Link" %}</button>
+    </li>
+    <style>
+        /* Style for the modal */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.4);
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            margin: 5% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 70%; /* Adjust the width as needed */
+            max-width: 400px; /* Set a maximum width if desired */
+            overflow-y: auto; /* Add vertical scroll if content overflows */
+        }
+    </style>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // URL template for the admin link
+            var adminUrlTemplate = '{% url "admin:worldbuilder_faction_change" -1 %}';
+
+            // Function to handle the button click event
+            function getObjectLink() {
+                // Create a modal for model search
+                var modal = document.createElement('div');
+                modal.className = 'modal';
+
+                // Create modal content
+                var modalContent = document.createElement('div');
+                modalContent.className = 'modal-content';
+
+                // Create an input element for model search
+                var inputElement = document.createElement('input');
+                inputElement.type = 'text';
+                inputElement.placeholder = 'Search for a Django model by name';
+                inputElement.style.width = '100%';
+
+                // Create a container to display search results
+                var resultsContainer = document.createElement('div');
+                resultsContainer.style.maxHeight = '150px';
+                resultsContainer.style.overflowY = 'auto';
+                resultsContainer.addEventListener('click', function (event) {
+                    var clickedElement = event.target;
+                    if (clickedElement.classList.contains('result-item')) {
+                        var resultName = clickedElement.innerHTML;
+                        console.log('Result clicked:', resultName);
+                    }
+                });
+
+                // Append elements to modal
+                modalContent.appendChild(inputElement);
+                modalContent.appendChild(resultsContainer);
+                modal.appendChild(modalContent);
+
+                // Append the modal to the body
+                document.body.appendChild(modal);
+
+                function updateResults(searchResults) {
+                    resultsContainer.innerHTML = '';
+                
+                    if (searchResults.length > 0) {
+                        // Show the results container
+                        resultsContainer.style.display = 'block';
+                
+                        searchResults.forEach(function (result) {
+                            var resultItem = document.createElement('div');
+                            resultItem.innerHTML = result.fields.name;  // Adjust based on your actual model structure
+                            resultItem.style.cursor = 'pointer';
+                            resultItem.addEventListener('click', function () {
+                                // Copy the URL to the clipboard
+                                var fullUrl = adminUrlTemplate.replace('-1', result.pk);
+                                console.log('Result clicked! URL:', fullUrl);
+                                navigator.clipboard.writeText(fullUrl).then(function () {
+                                    // Show flash message
+                                    showFlashMessage('URL copied to clipboard');
+                                }).catch(function (err) {
+                                    console.error('Unable to copy to clipboard', err);
+                                });
+                            });
+        
+                            resultsContainer.appendChild(resultItem);
+                        });
+                    } else {
+                        // Hide the results container if no results
+                        resultsContainer.style.display = 'none';
+                    }
+                }
+                
+                // Function to show flash message
+                function showFlashMessage(message) {
+                    var flashMessage = document.createElement('div');
+                    flashMessage.textContent = message;
+                    flashMessage.style.position = 'fixed';
+                    flashMessage.style.top = '50%';
+                    flashMessage.style.left = '50%';
+                    flashMessage.style.transform = 'translate(-50%, -50%)';
+                    flashMessage.style.padding = '10px';
+                    flashMessage.style.backgroundColor = 'lightgreen';
+                    flashMessage.style.border = '1px solid darkgreen';
+                    flashMessage.style.borderRadius = '5px';
+                    flashMessage.style.zIndex = '9999';
+                
+                    document.body.appendChild(flashMessage);
+                
+                    // Remove the flash message after a short delay (e.g., 2 seconds)
+                    setTimeout(function () {
+                        flashMessage.remove();
+                    }, 2000);
+                }
+                
+                // Function to handle input event for real-time search
+                function handleInput() {
+                    // Make an AJAX request to the server for search results
+                    var xhr = new XMLHttpRequest();
+                    xhr.open('GET', '{% url "search" %}?name=' + inputElement.value.trim(), true);
+                    xhr.onreadystatechange = function () {
+                        if (xhr.readyState === 4 && xhr.status === 200) {
+                            var searchResults = JSON.parse(xhr.responseText);
+                            updateResults(searchResults);
+                        }
+                    };
+                    xhr.send();
+                }
+
+                // Add input event listener to the input element
+                inputElement.addEventListener('input', handleInput);
+
+                // Add a focus event listener to remove the modal on blur
+                inputElement.addEventListener('blur', function () {
+                    setTimeout(function () {
+                        modal.remove();
+                    }, 500); // Adjust the delay time as needed
+                });
+
+                // Show the modal
+                modal.style.display = 'block';
+                inputElement.focus();
+            }
+
+            // Add a click event listener to the button
+            var getObjectLinkBtn = document.querySelector('.get-object-link-btn');
+            if (getObjectLinkBtn) {
+                getObjectLinkBtn.addEventListener('click', getObjectLink);
+            }
+        });
+    </script>
+{% endblock %}

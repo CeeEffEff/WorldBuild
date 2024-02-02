@@ -1,5 +1,6 @@
 import json
 import logging
+from itertools import chain
 
 from django.contrib.auth.models import User
 from django.core import serializers
@@ -122,6 +123,22 @@ def lists(_: HttpRequest):
         json.dumps(['npc', 'faction', 'map', 'point_of_interest', 'quest']),
         content_type='application/json'
     )
+
+@api_view(['GET'])
+@permission_classes([])
+def search(request: HttpRequest):
+    print('SEARCHING')
+    name = request.GET.get('name', '')
+    querysets = chain(
+        models.Npc.objects.filter(name__icontains=name).order_by('name'),
+        models.Faction.objects.filter(name__icontains=name).order_by('name'),
+        models.Map.objects.filter(name__icontains=name).order_by('name'),
+        models.PointOfInterest.objects.filter(name__icontains=name).order_by('name'),
+        models.Quest.objects.filter(name__icontains=name).order_by('name')
+    )
+    data = serializers.serialize('json', querysets)
+    print(data)
+    return HttpResponse(data, content_type='application/json')
 
 def maps(request):
     maps = Map.objects.all()
