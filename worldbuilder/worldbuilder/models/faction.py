@@ -3,7 +3,6 @@ from django.db import models
 from django.utils.translation import gettext_lazy as _
 from markdownfield.models import MarkdownField, RenderedMarkdownField
 from markdownfield.validators import VALIDATOR_STANDARD
-from ckeditor.fields import RichTextField
 
 class Faction(models.Model):
 
@@ -17,7 +16,6 @@ class Faction(models.Model):
     name = models.CharField(max_length=50, null=False, blank=False)
     icon = models.ImageField(upload_to="factions/", null=True, blank=True)
     motto = models.CharField(max_length=100, null=True, blank=True)
-    description_new = models.TextField(_("Description"), null=True, blank=True)
     description = MarkdownField(_("General Description"), rendered_field='description_rendered', validator=VALIDATOR_STANDARD, null=True, blank=True)
     description_rendered = RenderedMarkdownField(null=True, blank=True)
     goals = models.TextField(_("Goals"), null=True, blank=True)
