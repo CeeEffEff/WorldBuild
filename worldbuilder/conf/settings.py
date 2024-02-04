@@ -238,7 +238,9 @@ CKEDITOR_CONFIGS = {
             ['Bold', 'Italic', 'Underline'],
             ['NumberedList', 'BulletedList', '-', 'Outdent', 'Indent', '-', 'JustifyLeft', 'JustifyCenter', 'JustifyRight', 'JustifyBlock'],
             ['Link', 'Unlink', 'InsertLink'],
-            ['RemoveFormat', 'Source']
-        ]
+            ['Markdown'],
+            ['RemoveFormat', 'Source'],
+        ],
+        # 'format_tags': 'p;h1;h2;h3;pre', 
     },
 }

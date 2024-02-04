@@ -29,8 +29,8 @@ class FactionAdmin(admin.ModelAdmin):
 
     class Media:
         js = (
-            "https://cdn.ckeditor.com/4.17.1/standard/ckeditor.js",  # Adjust the path accordingly
-            static("ckeditor/ckeditor/plugins/insertlink/plugin.js"),  # Adjust the path accordingly
+            "https://cdn.ckeditor.com/4.17.1/standard/ckeditor.js",
+            static("ckeditor/ckeditor/plugins/insertlink/plugin.js"),
         )
 
 admin.site.register(models.Faction, FactionAdmin)
