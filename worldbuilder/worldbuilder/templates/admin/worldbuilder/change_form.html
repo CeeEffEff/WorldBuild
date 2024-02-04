@@ -40,6 +40,7 @@
                 // Create a modal for model search
                 var modal = document.createElement('div');
                 modal.className = 'modal';
+                modal.style.zIndex = 20
 
                 // Create modal content
                 var modalContent = document.createElement('div');
@@ -55,13 +56,6 @@
                 var resultsContainer = document.createElement('div');
                 resultsContainer.style.maxHeight = '150px';
                 resultsContainer.style.overflowY = 'auto';
-                resultsContainer.addEventListener('click', function (event) {
-                    var clickedElement = event.target;
-                    if (clickedElement.classList.contains('result-item')) {
-                        var resultName = clickedElement.innerHTML;
-                        console.log('Result clicked:', resultName);
-                    }
-                });
 
                 // Append elements to modal
                 modalContent.appendChild(inputElement);
@@ -85,8 +79,8 @@
                             resultItem.addEventListener('click', function () {
                                 // Copy the URL to the clipboard
                                 var fullUrl = adminUrlTemplate.replace('-1', result.pk);
-                                console.log('Result clicked! URL:', fullUrl);
-                                navigator.clipboard.writeText(fullUrl).then(function () {
+                                var hyperlink = '[' + result.fields.name + '](' + fullUrl + ')'
+                                navigator.clipboard.writeText(hyperlink).then(function () {
                                     // Show flash message
                                     showFlashMessage('URL copied to clipboard');
                                 }).catch(function (err) {
@@ -140,7 +134,7 @@
 
                 // Add input event listener to the input element
                 inputElement.addEventListener('input', handleInput);
-
+                handleInput() // Init results 
                 // Add a focus event listener to remove the modal on blur
                 inputElement.addEventListener('blur', function () {
                     setTimeout(function () {
