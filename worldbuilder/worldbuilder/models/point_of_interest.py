@@ -30,7 +30,7 @@ class PointOfInterest(models.Model):
     parent_maps = models.ManyToManyField(
         "Map",
         through="PoiOnMap",
-        related_name="points_of_interest"
+        related_name="points_of_interest",
     )
 
     def __str__(self):

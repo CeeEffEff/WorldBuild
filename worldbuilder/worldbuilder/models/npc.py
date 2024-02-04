@@ -19,6 +19,6 @@ class Npc(models.Model):
     classes = models.TextField(_("Classes"),  null=True, blank=True)
     description = MarkdownField(_("Description"), rendered_field='description_rendered', validator=VALIDATOR_STANDARD, null=True, blank=True)
     description_rendered = RenderedMarkdownField(null=True, blank=True)
-    goals = models.TextField(_("Individual Goals"),  null=True, blank=True)
+    goals = models.TextField(_("Individual Goals"), null=True, blank=True)
     # quests = models.ManyToManyField("Quest", verbose_name=_("Faction Quests"))
-    points_of_interest = models.ManyToManyField("PointOfInterest", verbose_name=_("Points of Interest"))
+    points_of_interest = models.ManyToManyField("PointOfInterest", verbose_name=_("Points of Interest"), blank=True)
