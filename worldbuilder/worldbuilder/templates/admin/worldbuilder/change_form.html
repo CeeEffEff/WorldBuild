@@ -90,6 +90,8 @@
                             resultItem.addEventListener('click', function () {
                                 // Copy the URL to the clipboard
                                 var fullUrl = adminUrlTemplate.replace('-1', result.pk);
+                                var modelName = result.model.split('.')[1]
+                                fullUrl = fullUrl.replace('faction', modelName);
                                 var hyperlink = '[' + result.fields.name + '](' + fullUrl + ')'
                                 navigator.clipboard.writeText(hyperlink).then(function () {
                                     // Show flash message
