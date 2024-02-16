@@ -252,13 +252,11 @@ def on_button_poi_create(clicks, poi_form, data):
     return 'Return creating POI'
 
 def display_context_menu(x, y, map_id):
-    print('Need to exclude if already on this map')
     map_options = [
        { 'label':map.name, 'value': map.pk }  for map in Map.objects.exclude(pk=map_id)
     ]
-    return dbc.Card(
+    new_poi_tab = dbc.Tab(
         [
-            dbc.CardHeader("Context Menu"),
             dbc.CardBody(
                 [
                     html.H4(f"[{x},{y}]", className="card-title", id='point-poi-form'),
@@ -310,6 +308,17 @@ def display_context_menu(x, y, map_id):
                     )
                 ]
             ),
+        ],
+        label='Create POI'
+    )
+    existing_poi_tab = dbc.Tab(
+        [
+            
+        ],
+        label='Add POI'
+    )
+    return dbc.Card([
+            dbc.Tabs([new_poi_tab, existing_poi_tab])
         ],
         style={"height": "90vh"},
     )
