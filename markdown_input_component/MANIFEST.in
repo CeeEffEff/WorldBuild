@@ -1,0 +1,11 @@
+include markdown_input_component/markdown_input_component.min.js
+include markdown_input_component/markdown_input_component.min.js.map
+include markdown_input_component/async-*.js
+include markdown_input_component/async-*.js.map
+include markdown_input_component/*-shared.js
+include markdown_input_component/*-shared.js.map
+include markdown_input_component/metadata.json
+include markdown_input_component/package-info.json
+include README.md
+include LICENSE
+include package.json

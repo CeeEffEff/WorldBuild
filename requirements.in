@@ -1,5 +1,6 @@
 channels
 channels-redis
+cookiecutter
 dash
 dash-bootstrap-components
 dash-daq
