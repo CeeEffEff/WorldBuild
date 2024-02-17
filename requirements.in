@@ -13,6 +13,7 @@ django-ckeditor
 django-cors-headers
 django-markdownfield
 dpd-static-support
+markdown_input_component/dist/markdown_input_component-0.0.1.tar.gz
 multipledispatch
 pandas
 pillow

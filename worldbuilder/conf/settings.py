@@ -218,6 +218,9 @@ PLOTLY_COMPONENTS = [
     
     # dash-bootstrap-components
     'dash_bootstrap_components',
+    
+    # my custom component
+    'markdown_input_component',
 ]
 
 # Enable frames within HTML

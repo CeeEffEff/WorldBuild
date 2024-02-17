@@ -17,6 +17,7 @@ from django_plotly_dash import DjangoDash
 from multipledispatch import dispatch
 from skimage import io
 
+from markdown_input_component import MarkdownInputComponent
 from worldbuilder.models import Map, PoiOnMap, PointOfInterest
 
 logger = logging.getLogger('__name__')
@@ -313,7 +314,10 @@ def display_context_menu(x, y, map_id):
     )
     existing_poi_tab = dbc.Tab(
         [
-            
+            MarkdownInputComponent(
+                id='description-markdown-poi-form',
+                value='*Add a description...*',
+            ),
         ],
         label='Add POI'
     )
