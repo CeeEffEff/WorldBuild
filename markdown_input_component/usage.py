@@ -6,8 +6,7 @@ app = Dash(__name__)
 app.layout = html.Div([
     markdown_input_component.MarkdownInputComponent(
         id='input',
-        value='my-value',
-        label='my-label'
+        value='*Add a description...*',
     ),
     html.Div(id='output')
 ])

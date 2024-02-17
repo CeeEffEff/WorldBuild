@@ -5,7 +5,7 @@ import { MarkdownInputComponent } from '../lib';
 
 const App = () => {
 
-    const [state, setState] = useState({value:'', label:'Type Here'});
+    const [state, setState] = useState({value:'Add a description...'});
     const setProps = (newProps) => {
             setState(newProps);
         };
