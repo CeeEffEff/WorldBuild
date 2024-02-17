@@ -1,5 +1,4 @@
 import base64
-import json
 import logging
 import os
 import re
@@ -12,12 +11,11 @@ import plotly.graph_objects as go
 from dash import dcc, html, Input, Output, State, exceptions, no_update
 from django.conf import settings
 from django.http import HttpRequest
-from django.urls import reverse
 from django_plotly_dash import DjangoDash
 from multipledispatch import dispatch
 from skimage import io
 
-from markdown_input_component import MarkdownInputComponent
+from worldbuilder.dash import map_cards
 from worldbuilder.models import Map, PoiOnMap, PointOfInterest
 
 logger = logging.getLogger('__name__')
@@ -69,7 +67,7 @@ container = dbc.Container(
             [
                 dbc.Col([colour_picker, outline_colour_picker], md=1, align="left", ),
                 dbc.Col(image_graph, md=8, align="right",),
-                dbc.Col([], md = 3, align='right', id='click-data'),
+                dbc.Col([map_cards.hidden_card()], md = 3, align='right', id='click-data'),
                 dbc.Col([
                     dcc.Markdown("""
                         **Debug**
@@ -161,24 +159,27 @@ def on_new_annotation(relayout_data, data):
 @app.callback(
     Output('click-data', 'children'),
     Input('map-graph', 'clickData'),
+    Input('btn-close-poi-form', 'n_clicks'),
     State("memory_store", "data"),
     prevent_initial_call=True,)
-def display_click_data(click_data: Dict, data: Dict):
-    # print(json.dumps(
-    #     click_data, indent=2
-    # ))
+def display_click_data(click_data: Dict, close_clicks, data: Dict):
+    if close_clicks:
+        prev_clicks = data.get('card_closes', 0)
+        data['card_closes'] = close_clicks
+        if close_clicks > prev_clicks:
+            return map_cards.hidden_card()
     if not click_data:
-        return
+        return map_cards.hidden_card()
     points: List[Dict] = click_data.get('points')
     if not points:
-        return ''
+        return map_cards.hidden_card()
     point = points[0]
     point_data = point.get('customdata')
     if point_data:
-        return display_poi_card(point_data)
+        return map_cards.display_poi_card(point_data)
     if ("x" in point) and ("y" in point):
-        return display_context_menu(point["x"], point["y"], data['map_id'])
-    return ''
+        return map_cards.new_poi_card(point["x"], point["y"], data['map_id'])
+    return map_cards.hidden_card()
 
 @app.callback(
     Output('upload-thumbnail-poi-form', 'children'),
@@ -196,12 +197,11 @@ def update_poi_thumbnail_upload(contents, name):
         ])
     return no_update
 
-
 @app.callback(
     Output('store-poi-form', 'data'),
     Input('point-poi-form', 'children'),
     Input('name-input-poi-form', 'value'),
-    Input('description-textarea-poi-form', 'value'),
+    Input('description-markdown-poi-form', 'value'),
     Input('upload-thumbnail-poi-form', 'contents'),
     Input('map-dropdown-poi-form', 'value'),
     State('upload-thumbnail-poi-form', 'filename'),
@@ -252,104 +252,13 @@ def on_button_poi_create(clicks, poi_form, data):
     poi.save()
     return 'Return creating POI'
 
-def display_context_menu(x, y, map_id):
-    map_options = [
-       { 'label':map.name, 'value': map.pk }  for map in Map.objects.exclude(pk=map_id)
-    ]
-    new_poi_tab = dbc.Tab(
-        [
-            dbc.CardBody(
-                [
-                    html.H4(f"[{x},{y}]", className="card-title", id='point-poi-form'),
-                    html.P(
-                        "Create a new point of interest",
-                        className="card-text",
-                    ),
-                    html.Hr(),
-                    dbc.InputGroup(
-                        [
-                            dbc.InputGroupText("Name"),
-                            dbc.Input(placeholder="New Point of Interest", required=True, id='name-input-poi-form')
-                        ],
-                        className="sb-3",
-                    ),
-                    html.Br(),
-                    dbc.InputGroup(
-                        [dbc.InputGroupText("Description"), dbc.Textarea(id='description-textarea-poi-form')],
-                        className="sb-3",
-                    ),
-                    html.Br(),
-                    dcc.Upload(
-                        id='upload-thumbnail-poi-form',
-                        children=html.Div([
-                            html.A('Select Thumbnail')
-                        ]),
-                        style={
-                            'width': '100%',
-                            'height': '60px',
-                            'lineHeight': '60px',
-                            'borderWidth': '1px',
-                            'borderStyle': 'dashed',
-                            'borderRadius': '5px',
-                            'textAlign': 'center',
-                        }
-                    ),
-                    html.Br(),
-                    dbc.InputGroup(
-                        [dbc.InputGroupText("Map for POI"), dcc.Dropdown(options=map_options, id='map-dropdown-poi-form')],
-                        className="mb-3",
-                    ),
-                    html.Br(),
-                    dbc.Button(
-                        "Create Point of Interest", color="primary", id="button-create-poi"
-                    ),
-                    dcc.Store(
-                        id='store-poi-form',
-                        data=dict()
-                    )
-                ]
-            ),
-        ],
-        label='Create POI'
-    )
-    existing_poi_tab = dbc.Tab(
-        [
-            MarkdownInputComponent(
-                id='description-markdown-poi-form',
-                value='*Add a description...*',
-            ),
-        ],
-        label='Add POI'
-    )
-    return dbc.Card([
-            dbc.Tabs([new_poi_tab, existing_poi_tab])
-        ],
-        style={"height": "90vh"},
-    )
-
-def display_poi_card(point_data):
-    pk = point_data.get('pk')
-    poi = PointOfInterest.objects.get(pk=pk)
-    return dbc.Card(
-        [
-            dbc.CardImg(src=poi.thumbnail.url, top=True),
-            dbc.CardBody(
-                [
-                    html.H4(poi.name, className="card-title",),
-                    dcc.Markdown(
-                        poi.description,
-                        className="card-text",
-                    ),
-                ] + ([dbc.Button(
-                    "Go to map of POI", color="primary", href=f"{reverse('dash_map')}?id={poi.poi_map.pk}",
-                    target="_blank",
-                    external_link=True,
-                )] if poi.poi_map else [])
-                
-            ),
-        ],
-        style={"height": "90vh"},
-    )
+@app.callback(
+    Output('add-poi-preview-div', 'children'),
+    Input('add-poi-dropdown', 'value'),
+)
+def update_add_poi_preview(selected_value):
+    poi = PointOfInterest.objects.get(pk=selected_value)
+    return map_cards.add_poi_preview(poi) if poi else no_update
 
 @dispatch(str, str)
 def map_fig(map_id: str, image_url: str) -> Tuple[Map, go.Figure]:
