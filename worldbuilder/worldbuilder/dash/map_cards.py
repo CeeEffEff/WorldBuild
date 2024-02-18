@@ -19,7 +19,8 @@ def card_header():
                 }
             ),
         ],
-        style={"height": "40px"},
+        # style={"height": "40px",},
+        style={"flex": "0 0 40px", 'overflow-y': 'visible'},
         class_name='card-header border-bottom-0'  # bg-transparent
     )
 
@@ -142,26 +143,43 @@ def new_poi_tab(x, y, map_options):
 def display_poi_card(point_data):
     pk = point_data.get('pk')
     poi = PointOfInterest.objects.get(pk=pk)
+    # poi.thumbnail.height
+    # poi.thumbnail.width
+    # 
+    remaing_height = poi.thumbnail.width / poi.thumbnail.height
     return dbc.Card(
         [
             card_header(),
-            dbc.CardImg(src=poi.thumbnail.url, top=False),
+            dbc.CardImg(
+                src=poi.thumbnail.url,
+                top=False,
+                style={"flex": "0 0", 'overflow-y': 'visible'},
+            ),
             dbc.CardBody(
                 [
-                    html.H4(poi.name, className="card-title",),
+                    html.H4(
+                        poi.name,
+                        className="card-title",
+                        style={"flex": "0 0", 'overflow-y': 'visible',},
+                    ),
+                    html.Hr(),
                     dcc.Markdown(
                         poi.description,
                         className="card-text",
+                        style={"flex": "1 1", 'overflow-y': 'scroll',},
                     ),
-                ] + ([dbc.Button(
-                    "Go to map of POI", color="primary", href=f"{reverse('dash_map')}?id={poi.poi_map.pk}",
-                    target="_blank",
-                    external_link=True,
-                )] if poi.poi_map else [])
-                
+                ] + ([
+                    html.Hr(),
+                    dbc.Button(
+                        "Go to map of POI", color="primary", href=f"{reverse('dash_map')}?id={poi.poi_map.pk}",
+                        target="_blank",
+                        external_link=True,
+                        style={"flex": "0 0", 'overflow-y': 'visible'},
+                )] if poi.poi_map else []),
+                style={"flex": "1 1", 'display': 'flex', 'flexDirection': 'column', 'overflow-y': 'hidden'}
             ),
         ],
-        style={"height": "90vh"},
+        style={"height": "90vh", 'display': 'flex', 'flexDirection': 'column', 'overflow': 'visible'},
         id='cardright',
     )
 
