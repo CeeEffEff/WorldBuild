@@ -2,13 +2,13 @@
 
 ## TO-DO
 
-- [] Bug. If I close a POI card I can't reopen it without clicking on different one first
-- [] Edit POI mode
+- [ ] Bug. If I close a POI card I can't reopen it without clicking on different one first
+- [ ] Edit POI mode
 - [x] Make display POI scrollable
-- [] Make map fill all space (card looks like it is taking up when hidden)
-- [] Remove from map POI
-- [] Make any POI addition show instantly on map
-- [] Make any POI addition close the card
+- [ ] Make map fill all space (card looks like it is taking up when hidden)
+- [ ] Remove from map POI
+- [ ] Make any POI addition show instantly on map
+- [ ] Make any POI addition close the card
 
 
 ## Models
