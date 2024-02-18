@@ -43,18 +43,22 @@ def add_poi_tab(x, y):
         [
             dbc.CardBody(
                 [
-                    html.H4(f"[{x},{y}]", className="card-title", id='point-poi-form'),
+                    html.H4(f"[{x},{y}]", className="card-title", id='point-add-poi-form'),
                     html.P(
                         "Add existing point of interest",
                         className="card-text",
                     ),
                     html.Hr(),
                     dcc.Dropdown(
-                        options, list(options.keys())[0], id='add-poi-dropdown',
+                        options, list(options.keys())[0], id='dropdown-add-poi-form',
                     ),
-                    html.Div([], id="add-poi-preview-div", style={'overflow-y': 'scroll', 'maxHeight': '50vh'}),
+                    html.Div([], id="preview-div-add-poi-form", style={'overflow-y': 'scroll', 'maxHeight': '50vh'}),
                     html.Br(),
-                    dbc.Button("Add Point of Interest", color="primary", id="button-create-poi"),
+                    dbc.Button("Add Point of Interest", color="primary", id="button-add-poi-form"),
+                    dcc.Store(
+                        id='store-add-poi-form',
+                        data=dict()
+                    ),
                 ],
             )
         ],

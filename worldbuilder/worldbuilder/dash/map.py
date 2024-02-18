@@ -221,7 +221,7 @@ def update_poi_form(point, name, description, thumbnail_data, poi_map, thumbnail
     }
 
 @app.callback(
-    Output('debug-data', 'children'),
+    Output('debug-data', 'children', allow_duplicate=True),
     Input('button-create-poi', 'n_clicks'),
     State('store-poi-form', 'data'),
     State('memory_store', 'data'),
@@ -253,12 +253,50 @@ def on_button_poi_create(clicks, poi_form, data):
     return 'Return creating POI'
 
 @app.callback(
-    Output('add-poi-preview-div', 'children'),
-    Input('add-poi-dropdown', 'value'),
+    Output('store-add-poi-form', 'data'),
+    Input('dropdown-add-poi-form', 'value'),
+    Input('point-add-poi-form', 'children'),
+    State('memory_store', 'data'),
+    prevent_initial_call=False
 )
-def update_add_poi_preview(selected_value):
-    poi = PointOfInterest.objects.get(pk=selected_value)
+def update_add_poi_form(poi_pk, point, data):
+    pattern = r'\[(\d+),(\d+)]'
+    result = re.search(pattern, point)
+    x, y = int(result.group(1)), int(result.group(2))
+    return {
+        'x': x,
+        'y': y,
+        'poi_id': poi_pk,
+        'map_id': data['map_id']
+    }
+
+@app.callback(
+    Output('preview-div-add-poi-form', 'children'),
+    Input('store-add-poi-form', 'data'),
+    prevent_initial_call=False
+)
+def update_add_poi_preview(data):
+    poi = PointOfInterest.objects.get(pk=data['poi_id'])
     return map_cards.add_poi_preview(poi) if poi else no_update
+
+@app.callback(
+    Output('debug-data', 'children'),
+    Input('button-add-poi-form', 'n_clicks'),
+    State('store-add-poi-form', 'data'),
+    prevent_initial_call=True
+)
+def on_button_poi_add(clicks, data):
+    if not clicks:
+        return no_update
+    curr_map = Map.objects.get(pk=data['map_id'])
+    poi = PointOfInterest.objects.get(pk=data['poi_id'])
+    poi.parent_maps.add(curr_map, through_defaults={
+        'x': data['x'],
+        'y': data['y']
+    })
+    poi.full_clean()
+    poi.save()
+    return 'Return adding POI'
 
 @dispatch(str, str)
 def map_fig(map_id: str, image_url: str) -> Tuple[Map, go.Figure]:
