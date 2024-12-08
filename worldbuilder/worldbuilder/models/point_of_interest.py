@@ -4,27 +4,29 @@ from django.utils.translation import gettext_lazy as _
 from markdownfield.models import MarkdownField, RenderedMarkdownField
 from markdownfield.validators import VALIDATOR_STANDARD
 
+
 class PointOfInterest(models.Model):
     class Meta:
         verbose_name = _("Point of Interest")
         verbose_name_plural = _("Points of Interest")
 
     name = models.CharField(max_length=50, null=False)
-    description = MarkdownField(rendered_field='description_rendered', validator=VALIDATOR_STANDARD, null=True, blank=True)
+    description = MarkdownField(
+        rendered_field="description_rendered",
+        validator=VALIDATOR_STANDARD,
+        null=True,
+        blank=True,
+    )
     description_rendered = RenderedMarkdownField(null=True, blank=True)
     thumbnail = models.ImageField(
         upload_to="thumbnails/",
-        default='thumbnails/default.jpeg',
+        default="thumbnails/default.jpeg",
         null=True,
-        blank=True
+        blank=True,
     )
 
     poi_map = models.ForeignKey(
-        "Map",
-        models.SET_NULL,
-        blank=True,
-        null=True,
-        related_name="poi_map"
+        "Map", models.SET_NULL, blank=True, null=True, related_name="poi_map"
     )
 
     parent_maps = models.ManyToManyField(

@@ -161,3 +161,7 @@ cython_debug/
 
 # Django
 staticfiles/
+
+
+# Keep Component
+!*/src/lib

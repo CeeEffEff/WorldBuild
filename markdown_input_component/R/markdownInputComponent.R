@@ -1,9 +1,9 @@
 # AUTO GENERATED FILE - DO NOT EDIT
 
 #' @export
-markdownInputComponent <- function(id=NULL, value=NULL) {
+markdownInputComponent <- function(id=NULL, className=NULL, options=NULL, style=NULL, value=NULL) {
     
-    props <- list(id=id, value=value)
+    props <- list(id=id, className=className, options=options, style=style, value=value)
     if (length(props) > 0) {
         props <- props[!vapply(props, is.null, logical(1))]
     }
@@ -11,7 +11,7 @@ markdownInputComponent <- function(id=NULL, value=NULL) {
         props = props,
         type = 'MarkdownInputComponent',
         namespace = 'markdown_input_component',
-        propNames = c('id', 'value'),
+        propNames = c('id', 'className', 'options', 'style', 'value'),
         package = 'markdownInputComponent'
         )
 
