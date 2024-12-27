@@ -1,4 +1,3 @@
-from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 from markdownfield.models import MarkdownField, RenderedMarkdownField
@@ -6,6 +5,9 @@ from markdownfield.validators import VALIDATOR_STANDARD
 
 
 class PointOfInterest(models.Model):
+
+    DEFAULT_THUMBNAIL = "thumbnails/default.jpeg"
+
     class Meta:
         verbose_name = _("Point of Interest")
         verbose_name_plural = _("Points of Interest")
@@ -20,7 +22,7 @@ class PointOfInterest(models.Model):
     description_rendered = RenderedMarkdownField(null=True, blank=True)
     thumbnail = models.ImageField(
         upload_to="thumbnails/",
-        default="thumbnails/default.jpeg",
+        default=DEFAULT_THUMBNAIL,
         null=True,
         blank=True,
     )

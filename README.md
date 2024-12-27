@@ -51,8 +51,9 @@ In the project root `.`.
 - [x] Make display POI scrollable
 - [ ] Make map fill all space (card looks like it is taking up when hidden)
 - [ ] Remove from map POI
-- [ ] Make any POI addition show instantly on map
+- [x] Make any POI addition show instantly on map
 - [ ] Make any POI addition close the card
+- [ ] Create POI form required fields not alerting
 
 
 ## Models
@@ -60,7 +61,7 @@ Description of models and how they are connected.
 
 ### Maps
 Maps are at heart images mapping a given area at a given scale.
-A descrption is usually fitting to help describe generally the map.
+A description is usually fitting to help describe generally the map.
 
 Maps of one scale can be linked to a parent map of a scale one greater than itself.
 
