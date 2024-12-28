@@ -1,12 +1,11 @@
-from typing import Dict
-from worldbuilder.dash.constants import logger
-
-
-from django.conf import settings
-
-
 import base64
 import os
+from typing import Dict, Optional
+
+import dash
+from django.conf import settings
+
+from worldbuilder.dash.constants import logger
 
 
 def daq_rgb_to_dash(c: str):
@@ -27,3 +26,9 @@ def try_write_thumbnail_from_form(poi_form: Dict):
         logger.warning(e, exc_info=True)
         return None
     return thumbnail_path
+
+
+def get_context_triggered_id() -> Optional[str]:
+    if not (trigger_history := dash.callback_context.triggered):
+        return None
+    return trigger_history[0]["prop_id"].split(".")[0]

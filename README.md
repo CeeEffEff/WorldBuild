@@ -46,21 +46,26 @@ In the project root `.`.
 
 ## TO-DO
 
-- [ ] Bug. If I close a POI card I can't reopen it without clicking on different one first
-- [ ] Edit POI mode
+- [x] Bug. If I close a POI card I can't reopen it without clicking on different one first
+    Reason to me seems to be that the value of the click data has not changed when I click elsewhere - if I can clear clickdata then it would work
+- [ ] Add "Edit POI" mode
+- [ ] Add "Delete POI" mode
+- [ ] Add drag "POI" mode
+- [ ] Make POI Trace visible in legend so can be hidden
 - [x] Make display POI scrollable
 - [ ] Make map fill all space (card looks like it is taking up when hidden)
 - [ ] Remove from map POI
 - [x] Make any POI addition show instantly on map
 - [ ] Make any POI addition close the card
 - [ ] Create POI form required fields not alerting
+- [ ] POI Card - some parts are out of the bounds
 
 
 ## Models
 Description of models and how they are connected.
 
 ### Maps
-Maps are at heart images mapping a given area at a given scale.
+Maps are images that map a given area at a given scale.
 A description is usually fitting to help describe generally the map.
 
 Maps of one scale can be linked to a parent map of a scale one greater than itself.

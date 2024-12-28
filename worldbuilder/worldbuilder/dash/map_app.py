@@ -1,20 +1,23 @@
 import re
-from typing import Dict, List
+from typing import Dict, List, Optional
 
-import dash
-from dash import Input, Output, State, dcc, exceptions, html, no_update
 import dash_bootstrap_components as dbc
 import dash_daq as daq
+from dash import Input, Output, State, dcc, exceptions, html, no_update
 from django.http import HttpRequest
 from django_plotly_dash import DjangoDash
 
 from worldbuilder.dash import poi_cards
 from worldbuilder.dash.map_figure import get_map_and_figure, init_map_and_figure
-from worldbuilder.dash.utils import daq_rgb_to_dash
+from worldbuilder.dash.utils import daq_rgb_to_dash, get_context_triggered_id
 from worldbuilder.dash.constants import DEFAULT_RGB
 from worldbuilder.dash.utils import try_write_thumbnail_from_form
 from worldbuilder.models import Map, PointOfInterest
 
+
+# ------------------------------------------------------------------------------------------------
+# App
+# ------------------------------------------------------------------------------------------------
 
 app = DjangoDash(
     "WorldBuilder",
@@ -140,7 +143,6 @@ def on_toolbar_change(relayout_data, data):
         shapes[index][attr] = value
     return data
 
-
 @app.callback(
     Output("map-graph", "figure"),
     Input("button-create-poi", "n_clicks"),
@@ -151,8 +153,7 @@ def on_toolbar_change(relayout_data, data):
     prevent_initial_call=True,
 )
 def update_graph_figure(clicks, color_value, line_colour_value, poi_form, data):
-    triggered_id = dash.callback_context.triggered[0]["prop_id"].split(".")[0]
-    print(triggered_id)
+    triggered_id = get_context_triggered_id()
     if triggered_id == "button-create-poi":
         return on_button_poi_create(clicks, poi_form, data)
     elif triggered_id in ("annotation-color-picker", "annotation-color-picker-outline"):
@@ -212,18 +213,21 @@ def on_button_poi_create(clicks, poi_form, data):
 
 
 @app.callback(
+    Output("map-graph", "clickData"),
+    Input("btn-close-poi-form", "n_clicks"),
+    prevent_initial_call=True
+)
+def on_close_poi_button_click(close_clicks: Optional[int]):
+    return None
+
+
+@app.callback(
     Output("click-data", "children"),
     Input("map-graph", "clickData"),
-    Input("btn-close-poi-form", "n_clicks"),
     State("memory_store", "data"),
-    prevent_initial_call=True,
+    prevent_initial_call=False,
 )
-def show_or_hide_poi_card(click_data: Dict, close_clicks, data: Dict):
-    if close_clicks:
-        prev_clicks = data.get("card_closes", 0)
-        data["card_closes"] = close_clicks
-        if close_clicks > prev_clicks:
-            return poi_cards.hidden_card()
+def show_or_hide_poi_card(click_data: Dict, data: Dict):
     if not click_data:
         return poi_cards.hidden_card()
     points: List[Dict] = click_data.get("points")
@@ -236,6 +240,41 @@ def show_or_hide_poi_card(click_data: Dict, close_clicks, data: Dict):
     if ("x" in point) and ("y" in point):
         return poi_cards.new_poi_card(point["x"], point["y"], data["map_id"])
     return poi_cards.hidden_card()
+
+
+# @app.callback(
+#     Output("click-data", "children"),
+#     Input("map-graph", "clickData"),
+#     Input("btn-close-poi-form", "n_clicks"),
+#     State("memory_store", "data"),
+#     prevent_initial_call=False,
+# )
+# def show_or_hide_poi_card(click_data: Dict, close_clicks, data: Dict):
+#     triggered_id = get_context_triggered_id()
+#     print(f"show_or_hide_poi_card.triggered_id: {triggered_id}")
+#     print(f"show_or_hide_poi_card.click_data: {click_data}")
+#     if triggered_id == "map-graph":
+#         # We have clicked on the map - we must show a card
+#         pass
+#     if triggered_id == "btn-close-poi-form":
+#         return poi_cards.hidden_card()
+#     if close_clicks:
+#         prev_clicks = data.get("card_closes", 1) # Test this
+#         data["card_closes"] = close_clicks % 2
+#         if close_clicks > prev_clicks:
+#             return poi_cards.hidden_card()
+#     if not click_data:
+#         return poi_cards.hidden_card()
+#     points: List[Dict] = click_data.get("points")
+#     if not points:
+#         return poi_cards.hidden_card()
+#     point = points[0]
+#     point_data = point.get("customdata")
+#     if point_data:
+#         return poi_cards.display_poi_card(point_data)
+#     if ("x" in point) and ("y" in point):
+#         return poi_cards.new_poi_card(point["x"], point["y"], data["map_id"])
+#     return poi_cards.hidden_card()
 
 
 @app.callback(
