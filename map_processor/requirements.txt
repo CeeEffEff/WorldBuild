@@ -8,8 +8,6 @@ anyio==4.7.0
     # via
     #   httpx
     #   jupyter-server
-appnope==0.1.4
-    # via ipykernel
 argon2-cffi==23.1.0
     # via jupyter-server
 argon2-cffi-bindings==21.2.0
@@ -28,7 +26,7 @@ babel==2.16.0
     # via jupyterlab-server
 beautifulsoup4==4.12.3
     # via nbconvert
-bleach==6.2.0
+bleach[css]==6.2.0
     # via nbconvert
 certifi==2024.8.30
     # via
@@ -171,7 +169,7 @@ mistune==3.0.2
     # via nbconvert
 nbclient==0.10.1
     # via nbconvert
-nbconvert==7.16.4
+nbconvert==7.17.1
     # via
     #   jupyter
     #   jupyter-server
@@ -308,7 +306,7 @@ terminado==0.18.1
 tifffile==2024.9.20
     # via scikit-image
 tinycss2==1.4.0
-    # via nbconvert
+    # via bleach
 tornado==6.4.2
     # via
     #   ipykernel
