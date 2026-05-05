@@ -30,7 +30,7 @@
     "copyfiles": "^2.1.1",
     "css-loader": "^6.8.1",
     "easymde": "2.18.0",
-    "eslint": "^6.0.1",
+    "eslint": "^10.2.1",
     "eslint-config-prettier": "^6.0.0",
     "eslint-plugin-import": "^2.18.0",
     "eslint-plugin-react": "^7.14.2",
@@ -40,10 +40,10 @@
     "react-dom": "^16.8.6",
     "react-simplemde-editor": "^5.2.0",
     "style-loader": "^3.3.3",
-    "styled-jsx": "^3.2.1",
-    "webpack": "^5.84.1",
+    "styled-jsx": "^5.1.7",
+    "webpack": "^5.106.2",
     "webpack-cli": "^5.1.4",
-    "webpack-dev-server": "^4.15.0"
+    "webpack-dev-server": "^5.2.1"
   },
   "engines": {
     "node": ">=8.11.0",
