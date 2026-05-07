@@ -306,8 +306,8 @@ terminado==0.18.1
 tifffile==2024.9.20
     # via scikit-image
 tinycss2==1.4.0
-    # via bleach
-tornado==6.4.2
+    # via nbconvert
+tornado==6.5.5
     # via
     #   ipykernel
     #   jupyter-client
