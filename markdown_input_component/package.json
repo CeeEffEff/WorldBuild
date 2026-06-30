@@ -19,7 +19,7 @@
     "ramda": "^0.26.1"
   },
   "devDependencies": {
-    "@babel/core": "^7.22.1",
+    "@babel/core": "^7.29.6",
     "@babel/plugin-proposal-object-rest-spread": "^7.20.7",
     "@babel/preset-env": "^7.22.2",
     "@babel/preset-react": "^7.22.3",
@@ -43,7 +43,7 @@
     "styled-jsx": "^5.1.7",
     "webpack": "^5.106.2",
     "webpack-cli": "^5.1.4",
-    "webpack-dev-server": "^5.2.4"
+    "webpack-dev-server": "^5.2.5"
   },
   "engines": {
     "node": ">=8.11.0",
